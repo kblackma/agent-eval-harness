@@ -9,6 +9,30 @@ better, and that is not evidence.
 
 This is the harness I built to settle it on my own system, and the result it produced.
 
+## The short version
+
+I ran the same nine tasks with and without the always-on context — the project rules and
+memory that get loaded into every session. Without it, success dropped from 100% to 22%, it
+took 5.4× the turns, and 11.2× the tokens per completed task. So I cancelled the plan to
+trim it.
+
+Then I looked at what the context actually costs. Caching matches the longest identical run
+of bytes at the *start* of the prompt, and I had a task ID interpolated near the top, above
+3.5 KB of text that never changes. Moving everything stable to the front and everything
+variable to the back took the cached portion from 32% to 93%.
+
+I tried one more reorder and stopped: it would only have paid off below the provider's
+1,024-token cache minimum, so it bought nothing and risked the persona no longer leading
+the prompt.
+
+The real cost isn't the opening prompt anyway — it's the same context replayed on every
+turn of a long task. So the agent is instructed to checkpoint at about 80% of context and
+continue from that summary instead of its full history.
+
+Two of those three findings are optimisations I killed with my own measurements. The
+details are in [docs/ABLATION.md](docs/ABLATION.md) and
+[docs/CACHE_SHAPE.md](docs/CACHE_SHAPE.md).
+
 ## The result
 
 Nine frozen tasks with machine-checkable assertions. Same tasks, same model, same

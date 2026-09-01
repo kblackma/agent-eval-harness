@@ -9,6 +9,23 @@ anything?
 
 The answer turned out to be **shape, not size.**
 
+## In plain language, before the detail
+
+Caching matches the longest identical run of bytes at the *start* of the prompt. I had a
+task ID interpolated near the top, above 3.5 KB of text that never changes — so everything
+below that ID was re-billed uncached, every task. Moving all the stable text to the front
+and all the variable text to the back took the cached portion from 32% to 93%. Same
+information, same behaviour, nothing removed.
+
+Then I tried one more reorder and stopped. I have five personas, so five separate cache
+entries; the idea was to put the shared block *above* the persona so all five would share
+one entry. But that shared block is ~820 tokens and the provider will not cache anything
+under 1,024, so the one thing the change was supposed to buy is below the floor and gets
+nothing. It would have cost me the persona no longer leading the prompt, for zero gain.
+
+And the opening prompt was never where the money went. The real cost is the same context
+replayed on every turn of a long task, which is what the last section is about.
+
 ## The mechanism
 
 Anthropic prompt caching matches the **longest byte-identical leading prefix** of a request
