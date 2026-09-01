@@ -50,6 +50,7 @@ Full write-up, including the honest limitation of this ablation design:
 | `schema/001_agent_runs.sql` | The `agent_runs` and `agent_retrievals` ledger. Token accounting, latency decomposition, per-assertion log, response text. |
 | `evals/demo_suite/` | Eight runnable demo tasks against a small fixture repo. |
 | `docs/METHODOLOGY.md` | How to write a task that measures your system instead of the model. **The most transferable part of this repo.** |
+| `docs/CACHE_SHAPE.md` | The companion result: keep the context, then shape it so it caches. Shared prefix 32% -> 93%, and one follow-up optimisation measured and refused. |
 
 ## Quick start
 
