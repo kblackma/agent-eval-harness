@@ -77,10 +77,15 @@ independent prefixes.
 
 It was still a **NO-GO**, for three reasons found by measuring rather than assuming:
 
-1. **It falls under the cache floor.** The shared block is ~820 tokens. Anthropic's minimum
-   cacheable prefix is 1,024 tokens. Collapsing five entries into "one" would have produced
-   *zero* — the hoisted block is not cacheable on its own. Only the full prompt (~1,420
-   tokens) clears the floor, and that is persona-specific by construction.
+1. **The gain falls under the cache floor.** The shared block is ~820 tokens; Anthropic's
+   minimum cacheable prefix is 1,024. The *only* thing the reorder buys is a prefix shared
+   **across** personas — and at 820 tokens that prefix is below the floor, so it is never
+   cached. Five entries would collapse to **zero**, not one.
+
+   To be precise about what is *not* affected: caching **within** a single persona already
+   works and would continue to, because there the match runs persona + shared block ≈ 1,420
+   tokens, which clears the floor. That is the 93% measured above. The reorder does not
+   shrink it — it simply fails to add the cross-persona sharing it was proposed for.
 2. **The saving is rounding error.** Even granting a cacheable 820 tokens, the delta is
    write-price versus read-price on 820 tokens per task. A task here routinely burns
    100k–500k tokens. That is under 0.01% of task cost.
