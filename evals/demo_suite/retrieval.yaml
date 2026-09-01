@@ -1,0 +1,44 @@
+# Retrieval — facts that live in the fixture repo's own context (CLAUDE.md, docs/).
+# A fresh model with no repo context cannot know these. That is what makes them
+# measure the context layer rather than the model.
+tasks:
+  - id: ret_seq_not_unique
+    category: retrieval
+    why: "Per-stream vs global `seq` — the repo's most-repeated historical bug."
+    prompt: |
+      I want to join two result sets from the `events` table on `seq`. Is that safe?
+    workspace: readonly
+    timeout_s: 300
+    assertions:
+      - type: contains_all
+        values: ["stream_id"]
+      - type: contains_any
+        values: ["per-stream", "per stream", "not globally unique", "not unique"]
+      - type: not_contains
+        values: ["seq is globally unique"]
+
+  - id: ret_ingest_window
+    category: retrieval
+    why: "09:31 not 09:30 — an off-by-one-minute convention written down in one place."
+    prompt: |
+      What time does the ingest window open, and why that time?
+    workspace: readonly
+    timeout_s: 300
+    assertions:
+      - type: contains_all
+        values: ["09:31"]
+      - type: contains_any
+        values: ["replay", "discard", "first minute"]
+
+  - id: ret_write_path
+    category: retrieval
+    why: "Supported write path vs the backfill escape hatch."
+    prompt: |
+      I need to write a new event from a request handler. Which method do I call?
+    workspace: readonly
+    timeout_s: 300
+    assertions:
+      - type: contains_all
+        values: ["append"]
+      - type: not_contains
+        values: ["use _raw_insert", "call _raw_insert"]

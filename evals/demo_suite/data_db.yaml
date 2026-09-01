@@ -1,0 +1,28 @@
+# Data/DB — partition-aware query construction.
+tasks:
+  - id: db_sargable_bound
+    category: data-db
+    why: "A non-sargable predicate on the partition key scans every partition."
+    prompt: |
+      Write the SQL to read yesterday's events for stream 'abc' from the `events` table.
+    workspace: readonly
+    timeout_s: 300
+    assertions:
+      - type: regex
+        pattern: "ts\\s*>=\\s*[$:%?']"
+      - type: not_contains
+        values: ["date_trunc('day', ts) ="]
+
+  - id: db_timezone_boundary
+    category: data-db
+    why: "Storage is UTC; rendering is the API's job. Tests the layer boundary."
+    prompt: |
+      A user in Tokyo reports timestamps look wrong. Where is the timezone conversion
+      supposed to happen in this codebase?
+    workspace: readonly
+    timeout_s: 300
+    assertions:
+      - type: contains_any
+        values: ["api.py", "API layer", "render_event"]
+      - type: contains_any
+        values: ["UTC"]

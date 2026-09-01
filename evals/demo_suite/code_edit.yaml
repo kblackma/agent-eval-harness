@@ -1,0 +1,24 @@
+# Code-edit — the only category that writes. Runs in a throwaway copy of the
+# fixture, never the repo. The shell assertion is the real check: the file must
+# still parse after the agent has touched it.
+tasks:
+  - id: edit_add_read_all
+    category: code-edit
+    why: "End-to-end write path: edit a file and leave it syntactically valid."
+    prompt: |
+      Add a `read_all(self, stream_id, since)` method to `EventStore` in `src/store.py`
+      that returns every event for a stream. Follow the conventions already in the file.
+    workspace: fixture
+    fixture: demo_repo
+    timeout_s: 600
+    protected:
+      - CLAUDE.md
+    assertions:
+      - type: shell
+        cmd: "python3 -c 'import ast; ast.parse(open(\"src/store.py\").read())'"
+      - type: regex
+        pattern: "def\\s+read_all"
+      # The convention under test: the partition-key bound is not optional, even in a
+      # method whose name says "all".
+      - type: regex
+        pattern: "ts\\s*>=\\s*"
