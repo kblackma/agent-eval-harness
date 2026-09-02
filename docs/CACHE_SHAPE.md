@@ -2,10 +2,10 @@
 
 A companion result to [ABLATION.md](ABLATION.md), and the natural follow-on from it.
 
-The ablation says **keep the always-on context** — removing it costs 5.4× the turns and
-11.2× the tokens per success. That raises an obvious next question: if the context is
-staying, what does it actually cost, and can that cost be engineered down without removing
-anything?
+The ablation says **keep the always-on context** — removing it costs 3.2× the turns and
+2.7× the tokens per success, even with the whole codebase still available to search. That
+raises an obvious next question: if the context is staying, what does it actually cost, and
+can that cost be engineered down without removing anything?
 
 The answer turned out to be **shape, not size.**
 

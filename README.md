@@ -12,9 +12,10 @@ This is the harness I built to settle it on my own system, and the result it pro
 ## The short version
 
 I ran the same nine tasks with and without the always-on context — the project rules and
-memory that get loaded into every session. Without it, success dropped from 100% to 22%, it
-took 5.4× the turns, and 11.2× the tokens per completed task. So I cancelled the plan to
-trim it.
+memory loaded into every session — in a git worktree that still had the whole codebase, so
+the only thing missing was the rules. Success dropped from 96% to 67%, it took 3.2× the
+turns, and 2.7× the tokens per completed task. Take the codebase away as well and it gets
+far worse: 22% success and 11.2× the tokens. So I cancelled the plan to trim it.
 
 Then I looked at what the context actually costs. Caching matches the longest identical run
 of bytes at the *start* of the prompt, and I had a task ID interpolated near the top, above
@@ -35,27 +36,38 @@ details are in [docs/ABLATION.md](docs/ABLATION.md) and
 
 ## The result
 
-Nine frozen tasks with machine-checkable assertions. Same tasks, same model, same
-prompts. The only change: the agent's always-on project context (~10.7k tokens of
-project conventions and memory) was removed.
+Nine frozen tasks with machine-checkable assertions, same tasks and same model
+throughout. Three conditions, because removing the context by running from an empty
+directory takes away the *codebase* too — and the two causes imply opposite actions.
 
-| Metric | with context | without | Δ |
+**Rules removed, codebase still present** (git worktree, convention file deleted;
+27 runs per arm):
+
+| Metric | baseline | rules removed | Δ |
 |---|---:|---:|---:|
-| task success rate | **1.000** | **0.222** | **−0.78** |
-| turns per run | 1.00 | **5.44** | 5.4× |
-| mean wall-clock | 8,684 ms | **27,334 ms** | 3.1× |
-| tokens per success | 46,343 | **516,867** | **11.2×** |
-| time to first token | 3,620 ms | 4,971 ms | 1.4× |
+| task success rate | 0.963 | **0.667** | −0.30 |
+| turns per run | 1.00 | **3.19** | 3.2× |
+| tokens per success | 51,535 | **136,939** | **2.7×** |
+| mean wall-clock | 11.0 s | 23.8 s | 2.2× |
+| time to first token | 6,481 ms | **3,234 ms** | **0.5×** |
 
-Removing the context does not make the agent cheaper. It makes it launch a five-turn
-hunt for things it was already told, take three times as long, burn **eleven times the
-tokens per success**, and still get it right 22% of the time instead of 100%.
+**Rules *and* codebase removed** (bare directory), for comparison:
+
+| Metric | baseline | both removed | Δ |
+|---|---:|---:|---:|
+| task success rate | 1.000 | **0.222** | −0.78 |
+| turns per run | 1.00 | **5.44** | 5.4× |
+| tokens per success | 46,343 | **516,867** | **11.2×** |
+
+So roughly **40% of the damage is not knowing the rules, and 60% is not having the code to
+hand.** Both are large. Even with the entire repository available to search, stripping the
+project context costs thirty points of success and 2.7× the tokens.
 
 I went in expecting the opposite. `cache_read_ratio` sat at 178:1 and I had it filed as
 drag — big contexts re-read every turn. It is better understood as **the price of not
-needing more turns**, and on this evidence it is badly underpriced. Note that TTFT barely
-moved while total time tripled: turns dominate latency, and context is what suppresses
-turns.
+needing more turns**, and on this evidence it is underpriced. Look at the last row: **TTFT
+halves** without the context, and total time still doubles. Turns dominate latency, and
+context is what suppresses turns.
 
 The intended optimisation — trim the always-on context — was cancelled by its own
 measurement. That is the finding.
